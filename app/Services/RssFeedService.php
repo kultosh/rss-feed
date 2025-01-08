@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use SimpleXMLElement;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class RssFeedService
@@ -18,7 +19,12 @@ class RssFeedService
      */
     public function fetchRssFeed(string $section)
     {
-        $rssFeed = $this->getRssFeedFromApi($section);
+        $cacheKey = "rss_feed_{$section}";
+        $sectionCacheTime = (int) env('GUARDIAN_CACHE_TIME', 10);
+        // Cache the specific section till defined time
+        $rssFeed = Cache::remember($cacheKey, now()->addMinutes($sectionCacheTime), function () use ($section) {
+            return $this->getRssFeedFromApi($section);
+        });
 
         if (!$rssFeed) {
             throw new Exception('Unable to fetch RSS feed');
@@ -36,9 +42,9 @@ class RssFeedService
      */
     private function getRssFeedFromApi(string $section)
     {
-        $response = Http::get(env('GUARDAIN_URL').'sections', [
+        $response = Http::get(env('GUARDIAN_URL').'sections', [
             'q' => $section,
-            'api-key' => env('GUARDAIN_API_KEY'),
+            'api-key' => env('GUARDIAN_API_KEY'),
             'format' => 'json',
         ]);
 
@@ -47,7 +53,7 @@ class RssFeedService
         }
 
         $data = $response->json();
-        Log::info('Response from GUARDAIN', ['data' => $data]);
+        Log::info('Response from GUARDIAN', ['data' => $data]);
         return $this->convertToRss($data);
     }
 
