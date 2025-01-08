@@ -42,9 +42,9 @@ class RssFeedService
      */
     private function getRssFeedFromApi(string $section)
     {
-        $response = Http::get(env('GUARDAIN_URL').'sections', [
+        $response = Http::get(env('GUARDIAN_URL').'sections', [
             'q' => $section,
-            'api-key' => env('GUARDAIN_API_KEY'),
+            'api-key' => env('GUARDIAN_API_KEY'),
             'format' => 'json',
         ]);
 
@@ -53,7 +53,7 @@ class RssFeedService
         }
 
         $data = $response->json();
-        Log::info('Response from GUARDAIN', ['data' => $data]);
+        Log::info('Response from GUARDIAN', ['data' => $data]);
         return $this->convertToRss($data);
     }
 
