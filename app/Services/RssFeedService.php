@@ -5,6 +5,7 @@ namespace App\Services;
 use Illuminate\Support\Facades\Http;
 use SimpleXMLElement;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class RssFeedService
@@ -18,7 +19,12 @@ class RssFeedService
      */
     public function fetchRssFeed(string $section)
     {
-        $rssFeed = $this->getRssFeedFromApi($section);
+        $cacheKey = "rss_feed_{$section}";
+        $sectionCacheTime = (int) env('GUARDIAN_CACHE_TIME', 10);
+        // Cache the specific section till defined time
+        $rssFeed = Cache::remember($cacheKey, now()->addMinutes($sectionCacheTime), function () use ($section) {
+            return $this->getRssFeedFromApi($section);
+        });
 
         if (!$rssFeed) {
             throw new Exception('Unable to fetch RSS feed');
