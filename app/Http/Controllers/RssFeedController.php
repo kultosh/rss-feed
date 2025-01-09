@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Rules\SectionName;
 use App\Services\RssFeedService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use SimpleXMLElement;
 
 class RssFeedController extends Controller
@@ -23,8 +25,14 @@ class RssFeedController extends Controller
      */
     public function getRssFeed($section)
     {
+        $validator = $this->validateSectionName($section);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            return $this->errorResponse($errors->first('section-name'), 'invalid', 422);
+        }
+
         try {
-            $rssFeed = $this->rssFeedService->fetchRssFeed($section); // Fetch the RSS feed using the service
+            $rssFeed = $this->rssFeedService->fetchRssFeed($section);
             return response($rssFeed, 200)
                 ->header('Content-Type', 'application/rss+xml');
 
@@ -42,14 +50,14 @@ class RssFeedController extends Controller
 
     /**
      * Return an error response as XML format.
-     * @param string $message
+     * @param string $message, string $status, int $code
      * @return \Illuminate\Http\Response
      */
-    private function errorResponse($message)
+    private function errorResponse($message, $status='error', $code=500)
     {
         $xml = new SimpleXMLElement('<response/>');
-        $xml->addChild('code', 500);
-        $xml->addChild('status', 'error');
+        $xml->addChild('code', $code);
+        $xml->addChild('status', $status);
         $xml->addChild('message', $message);
         $xml->addChild('content', '');
 
@@ -61,6 +69,20 @@ class RssFeedController extends Controller
 
         return response($dom->saveXML(), 500)
             ->header('Content-Type', 'application/rss+xml');
+    }
+
+    /**
+     * Validate the section name.
+     * Validates the given section name using the 'required' rule and a custom 'SectionName' rule.
+     * @param string $section The section name to validate.
+     * @return \Illuminate\Validation\Validator The validator instance.
+     */
+    public function validateSectionName($section)
+    {
+        return Validator::make(
+            ['section-name' => $section],
+            ['section-name' => ['required', new SectionName]]  // Validation rules
+        );
     }
 
 }
