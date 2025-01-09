@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Rules\SectionName;
 use App\Services\RssFeedService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use SimpleXMLElement;
 
 class RssFeedController extends Controller
@@ -23,8 +25,13 @@ class RssFeedController extends Controller
      */
     public function getRssFeed($section)
     {
+        $validator = $this->validateSectionName($section);
+        if ($validator->fails()) {
+            return $this->errorResponse('Invalid section name!');
+        }
+
         try {
-            $rssFeed = $this->rssFeedService->fetchRssFeed($section); // Fetch the RSS feed using the service
+            $rssFeed = $this->rssFeedService->fetchRssFeed($section);
             return response($rssFeed, 200)
                 ->header('Content-Type', 'application/rss+xml');
 
@@ -61,6 +68,20 @@ class RssFeedController extends Controller
 
         return response($dom->saveXML(), 500)
             ->header('Content-Type', 'application/rss+xml');
+    }
+
+    /**
+     * Validate the section name.
+     * Validates the given section name using the 'required' rule and a custom 'SectionName' rule.
+     * @param string $section The section name to validate.
+     * @return \Illuminate\Validation\Validator The validator instance.
+     */
+    public function validateSectionName($section)
+    {
+        return Validator::make(
+            ['section' => $section],
+            ['section' => ['required', new SectionName]]  // Validation rules
+        );
     }
 
 }
