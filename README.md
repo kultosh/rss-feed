@@ -1,66 +1,151 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+## About RSS FEEDS
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This Laravel-based project generates **RSS feeds** for specific sections (e.g., `/news`, `/sport`) of The Guardian's content using their Open Platform API. The RSS feed is **W3C-compliant**, optimized for performance, and includes the latest articles with metadata like title, description, publication date, and more. It's designed for developers and applications that need dynamic, real-time news feeds.
 
-## About Laravel
+## Table Of Contents
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+1.  [Features](#features)
+2.  [Prerequisites](#prerequisites)
+3.  [Installation](#installation)
+4.  [Configuration](#configuration)
+5.  [Usage](#usage)
+6.  [API Endpoints](#endpoints)
+8.  [Testing W3C Compliance](#testing-w3c-compliance)
+9.  [Caching](#caching)
+10. [Logging](#logging)
+11. [Docker Containerization (Optional)](#docker-containerization)
+12. [Technologies Used](#technologies-used)
+13. [Contributing](#contributing)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
+- Fetches articles from The Guardian API based on section names.
+- Converts API responses into **RSS 2.0 feeds**.
+- Caches feeds for a configurable duration to optimize performance.
+- Includes metadata such as title, link, description, publication date, and thumbnail.
+- Validates feeds to ensure compliance with **W3C standards**.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Prerequisites
 
-## Learning Laravel
+Before you begin, ensure you have the following installed on your local machine:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- [PHP](https://www.php.net/) (v8.1 or higher)
+- [Composer](https://getcomposer.org/)
+- [Laravel](https://laravel.com/) (v11)
+- [API Key From The Guardian Open Platform](https://open-platform.theguardian.com/access/)
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+## Installation
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Clone The Repository:
 
-## Laravel Sponsors
+```bash
+git clone https://github.com/kultosh/rss-feed.git
+cd rss-feed
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Install The Dependencies :
 
-### Premium Partners
+```bash
+composer install
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+## Configuration
+
+### .env Setup
+1. Add the following variables to your .env file:
+```bash
+GUARDIAN_URL=https://content.guardianapis.com/
+GUARDIAN_API_KEY=your-api-key
+GUARDIAN_CACHE_TIME=10
+```
+2. Generate the application key:
+```bash
+php artisan key:generate
+```
+
+## Usage
+- Run the Application:
+```bash
+php artisan serve
+```
+
+## Endpoints
+
+| HTTP Method | Endpoint                         | Description                                 |
+|-------------|----------------------------------|---------------------------------------------|
+| `GET`       | `/{section}`                     | Fetch the RSS Feed for a specific section   |
+
+Example request:
+```bash
+http://localhost:8000/news
+```
+This will return an RSS feed with the latest articles from the "news" section.
+<p align="center"><a href="https://share.nmblc.cloud/de384b25" target="_blank"><img src="https://share.nmblc.cloud/1736490920992-screenshot-localhost_8000-2025_01_10-12_19_08.png" width="900" alt="RssFeed"></a></p>
+
+## Testing W3C Compliance
+- Use the [W3C Feed Validator](https://validator.w3.org/feed/).
+- Expose your local environment using tools like **Ngrok**, or upload your feed as an XML file. Alternatively, copy your RSS feed content from the browser and paste it into the validator.
+
+
+## Caching
+- RSS feeds are cached for a configurable duration (default: 10 minutes).
+- You can modify the cache time by updating the GUARDIAN_CACHE_TIME value in your .env file.
+
+## Logging
+- The application uses Monolog for logging errors and warnings.
+- Logs are stored in storage/logs/laravel.log.
+
+## Docker Containerization (Optional)
+
+If you prefer running the application in a Dockerized environment, follow these steps:
+
+### Prerequisites
+- Install [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/).
+
+### Switch to the Docker Branch
+Ensure you are on the correct branch for Docker containerization:
+```bash
+git checkout docker-containerization
+```
+
+### Build and Run the Containers
+1. Build the Docker Containers:
+```bash
+docker-compose build
+```
+2. Start the containers:
+```bash
+docker-compose up
+```
+
+### Update Database Configuration In .env
+```bash
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=laravel # Default database created by the Docker setup else you can create your own in mysql container
+DB_USERNAME=root
+DB_PASSWORD=root
+```
+
+### Migrate The Database
+1. Access the PHP Container:
+```bash
+docker exec -it <php-container-name> bash
+```
+2. Run Migrations:
+```bash
+php artisan migrate
+```
+
+### Access The Application
+```bash
+http://localhost:8080
+```
+
+## Technologies Used
+- **Laravel**: A PHP framework used for building the backend logic and routing.
+- **The Guardian API**: Provides the latest news articles for various sections.
+- **Monolog**: Handles logging of errors and warnings.
 
 ## Contributing
-
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
-
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Feel free to fork this repository and make your changes. If you would like to contribute, submit a pull request.
