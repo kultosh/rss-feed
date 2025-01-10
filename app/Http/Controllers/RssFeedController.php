@@ -19,42 +19,42 @@ class RssFeedController extends Controller
 
     /**
      * Fetches the RSS feed for a given section.
+     * 
      * @param string $section The section for which the RSS feed is to be fetched.
      * @return Returns the RSS feed in XML format, or an error response if fetching fails
      * @throws \Exception If an error occurs while fetching the RSS feed or if the service fails
      */
     public function getRssFeed($section)
     {
-        $validator = $this->validateSectionName($section);
-        if ($validator->fails()) {
-            $errors = $validator->errors();
-            return $this->errorResponse($errors->first('section-name'), 'invalid', 422);
-        }
-
         try {
+            $validator = $this->validateSectionName($section);
+            if ($validator->fails()) {
+                $errors = $validator->errors();
+                return $this->errorResponse($errors->first('section-name'), 'invalid', 422);
+            }
             $rssFeed = $this->rssFeedService->fetchRssFeed($section);
             return response($rssFeed, 200)
                 ->header('Content-Type', 'application/rss+xml');
 
         } catch (\Exception $error) {
-            // Log the exception using Monolog
-            Log::error('An error occurred while fetching the RSS feed', [
-                'error_message' => $error->getMessage(),
-                'error_line' => $error->getLine(),
-                'stack_trace' => $error->getTraceAsString()
-            ]);
-            
             return $this->errorResponse($error->getMessage());
         }
     }
 
     /**
      * Return an error response as XML format.
+     * 
      * @param string $message, string $status, int $code
      * @return \Illuminate\Http\Response
      */
     private function errorResponse($message, $status='error', $code=500)
     {
+        Log::error('An error occurred while fetching the RSS feed', [
+            'message' => $message,
+            'status' => $status,
+            'code' => $code
+        ]);
+        
         $xml = new SimpleXMLElement('<response/>');
         $xml->addChild('code', $code);
         $xml->addChild('status', $status);
@@ -67,13 +67,14 @@ class RssFeedController extends Controller
         $dom->formatOutput = true;
         $dom->loadXML($xml->asXML());
 
-        return response($dom->saveXML(), 500)
+        return response($dom->saveXML(), $code)
             ->header('Content-Type', 'application/rss+xml');
     }
 
     /**
      * Validate the section name.
      * Validates the given section name using the 'required' rule and a custom 'SectionName' rule.
+     * 
      * @param string $section The section name to validate.
      * @return \Illuminate\Validation\Validator The validator instance.
      */
